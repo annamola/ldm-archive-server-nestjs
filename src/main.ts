@@ -5,7 +5,7 @@ import { envs } from './config/envs';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app
-    .listen(envs.PORT as number, '0.0.0.0', () => {
+    .listen(envs.PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${envs.PORT}`);
     })
     .catch((err) => {

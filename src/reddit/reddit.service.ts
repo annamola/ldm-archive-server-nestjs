@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { envs } from '../config/envs';
 import { RedditApiResponse } from 'src/shared/Reddit.type';
+import * as NodeCache from 'node-cache';
+
+const cache = new NodeCache({ stdTTL: 3600 });
 
 @Injectable()
 export class RedditService {
@@ -31,6 +34,14 @@ export class RedditService {
   }
 
   async getLatestPosts(username, token) {
+    const cacheKey = `reddit-posts-${username}`;
+
+    // Try to get from cache first
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     try {
       const credentials = Buffer.from(`bearer ${token}`).toString('base64');
       const baseUrl = `https://www.reddit.com/user/${username}/submitted.json?limit=100&raw_json=1`;
@@ -42,6 +53,9 @@ export class RedditService {
       });
       const postData: RedditApiResponse = await response.json();
       const latestPosts = postData.data.children.map((post) => post.data);
+
+      cache.set(cacheKey, latestPosts);
+
       return latestPosts;
     } catch (error) {
       console.error(error);
