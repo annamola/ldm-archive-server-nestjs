@@ -12,6 +12,7 @@ const envSchema = z.object({
   JWT_SEED: z.string().min(1),
   REDDIT_CLIENT_ID: z.string().min(1),
   REDDIT_CLIENT_SECRET: z.string().min(1),
+  REDDIT_API_BASE_URL: z.string().min(1),
   USER_AGENT: z.string().min(1),
 });
 

@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { RedditService } from './reddit.service';
-import { LatestPosts } from './dto/latest-posts.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('reddit')
 export class RedditController {
   constructor(private readonly redditService: RedditService) {}
@@ -11,12 +12,9 @@ export class RedditController {
     return this.redditService.getToken();
   }
 
-  @Post('/posts/latest')
-  getLatestPosts(@Body() latestPosts: LatestPosts) {
-    return this.redditService.getLatestPosts(
-      latestPosts.username,
-      latestPosts.token,
-    );
+  @Get('/posts/:username')
+  getLatestPosts(@Param('username') username: string) {
+    return this.redditService.getLatestPosts(username);
   }
   @Get('/comments/:postId')
   getPostComments(@Param('postId') postId: string) {
