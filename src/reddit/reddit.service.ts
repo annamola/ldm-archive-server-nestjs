@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { envs } from '../config/envs';
-import { RedditApiResponse } from 'src/shared/Reddit.type';
+import {
+  RedditApiResponse,
+  RedditChildComment,
+  RedditComment,
+} from 'src/shared/Reddit.type';
 import * as NodeCache from 'node-cache';
 
 const cache = new NodeCache({ stdTTL: 3600 });
@@ -60,6 +64,42 @@ export class RedditService {
     } catch (error) {
       console.error(error);
       throw new Error('Error fetching user posts.');
+    }
+  }
+
+  async getComments(postId) {
+    const cacheKey = `reddit-comments-${postId}`;
+
+    // Try to get from cache first
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const token = (await this.getToken()) as string;
+      const credentials = Buffer.from(`bearer ${token}`).toString('base64');
+      const baseUrl = `https://www.reddit.com/comments/${postId}.json?raw_json=1`;
+      const response = await fetch(baseUrl, {
+        headers: {
+          'User-Agent': envs.USER_AGENT,
+          Authorization: credentials,
+        },
+      });
+      const commentsData = await response.json();
+
+      const comments = commentsData[1].data.children.map(
+        (comment: RedditChildComment) => {
+          return comment.data;
+        },
+      );
+
+      cache.set(cacheKey, comments);
+
+      return comments as RedditComment[];
+    } catch (error) {
+      console.error(error);
+      throw new Error(`Error fetching comments for post:${postId}`);
     }
   }
 }
