@@ -10,6 +10,8 @@ const envSchema = z.object({
     .enum(['development', 'production', 'test'])
     .default('development'),
   JWT_SEED: z.string().min(1),
+  REDDIT_CLIENT_ID: z.string().min(1),
+  REDDIT_CLIENT_SECRET: z.string().min(1),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
