@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { envs } from '../config/envs';
+import { RedditApiResponse } from 'src/shared/Reddit.type';
 
 @Injectable()
 export class RedditService {
@@ -26,6 +27,25 @@ export class RedditService {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+  }
+
+  async getLatestPosts(username, token) {
+    try {
+      const credentials = Buffer.from(`bearer ${token}`).toString('base64');
+      const baseUrl = `https://www.reddit.com/user/${username}/submitted.json?limit=100&raw_json=1`;
+      const response = await fetch(baseUrl, {
+        headers: {
+          'User-Agent': envs.USER_AGENT,
+          Authorization: credentials,
+        },
+      });
+      const postData: RedditApiResponse = await response.json();
+      const latestPosts = postData.data.children.map((post) => post.data);
+      return latestPosts;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Error fetching user posts.');
     }
   }
 }
