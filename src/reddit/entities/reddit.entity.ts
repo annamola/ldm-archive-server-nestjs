@@ -43,6 +43,7 @@ export interface RedditChildComment {
 }
 
 export interface RedditCommentReply {
+  kind: string;
   data: {
     children: RedditChildComment[];
   };

@@ -4,6 +4,7 @@ import {
   RedditPostApiResponse,
   RedditCommentsApiResponse,
   RedditComment,
+  RedditCommentReply,
 } from './entities/reddit.entity';
 import { RedditPostDto } from './dto/reddit-post.dto';
 import { RedditCommentDto } from './dto/reddit-comment.dto';
@@ -96,9 +97,8 @@ export class RedditService {
       const commentsData: RedditCommentsApiResponse<RedditComment> =
         await response.json();
       const comments = commentsData[1].data.children.map(
-        (comment) => new RedditCommentDto(comment.data),
+        (comment: RedditCommentReply) => new RedditCommentDto(comment.data),
       );
-
       cache.set(cacheKey, comments);
       return comments as RedditComment[];
     } catch (error) {
