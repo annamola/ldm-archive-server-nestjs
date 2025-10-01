@@ -76,7 +76,7 @@ export class RedditService {
     }
   }
 
-  async getComments(postId) {
+  async getComments(postId, retries = 3, backoff = 1000) {
     const baseUrl = `${envs.REDDIT_API_BASE_URL}/comments/${postId}.json?raw_json=1`;
 
     const cacheKey = `reddit-comments-${postId}`;
@@ -98,8 +98,13 @@ export class RedditService {
       if (!response.ok || !contentType.includes('application/json')) {
         const text = await response.text();
         const match = text.match(/<title>(.*?)<\/title>/i);
+        const matchBody = text.match(/<body>(.*?)<\/body>/i);
         const title = match ? match[1] : 'Unknown error page';
-        throw new Error(`Reddit API error (${response.status}): ${title}`);
+        const body = matchBody ? matchBody[1] : 'Unknown error page body';
+
+        throw new Error(
+          `Reddit API error (${response.status}): ${title}: ${body}`,
+        );
       }
 
       const commentsData: RedditCommentsApiResponse<RedditComment> =
