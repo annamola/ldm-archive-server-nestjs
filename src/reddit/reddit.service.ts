@@ -93,6 +93,14 @@ export class RedditService {
           Authorization: createCredentials(token),
         },
       });
+      const contentType = response.headers.get('content-type') || '';
+      const text = await response.text();
+
+      if (!response.ok || !contentType.includes('application/json')) {
+        const match = text.match(/<title>(.*?)<\/title>/i);
+        const title = match ? match[1] : 'Unknown error page';
+        throw new Error(`Reddit API error (${response.status}): ${title}`);
+      }
 
       const commentsData: RedditCommentsApiResponse<RedditComment> =
         await response.json();
